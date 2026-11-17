@@ -109,7 +109,7 @@ queries ever reached grading. I changed the tie-break to oldest-first, capped re
 repo, and added repo-in-use and small-codebase checks to the rubric. The hardware queries still
 need fixing, and I haven't rescanned with the new strategy yet.
 
-**Claim comment:** claim pending (2026-11-16)
+**Claim comment:** https://github.com/pyrite-wiki/pyrite/issues/1559#issuecomment-6937090873
 
 **Toolkit**
 
@@ -171,31 +171,99 @@ need fixing, and I haven't rescanned with the new strategy yet.
 
 **Environment Setup**
 
-[What a stranger would need to stand this up: your operating system,
-the relevant versions (language, runtime, package manager, the project
-itself), and how you set the project up. Then the challenges you faced
-and how you solved them, or that none came up.]
+- macOS 15.5 (arm64). My system `python3` is 3.9.6, too old for pyrite (3.11+).
+- uv, which supplied Python 3.13.5 for the project's `.venv`.
+- pyrite cloned from my fork (Hdosseh1/pyrite), on `dev` at `f66b3977` (`pyrite --version`: 0.26.3).
+- Set up with the repo's own script, then the git hooks:
+  `UV_PYTHON=3.13 scripts/setup-checkout.sh` and `.venv/bin/pre-commit install`.
+  The issue's test command, `.venv/bin/pytest tests/test_cli_numeric_options_declare_a_range.py tests/test_task_cli_priority_range.py -q`,
+  passed 52/52 on clean `dev`.
+
+Challenges:
+- **Python version.** The system Python is 3.9, so a plain venv would not work. Setting
+  `UV_PYTHON=3.13` made the setup script build the venv on a uv-managed 3.13 without touching
+  the system install.
+- **Remotes.** I first cloned my fork as `origin`, but CONTRIBUTING.md ("From a fork") says the
+  repo's scripts read `origin/dev`, so `origin` must be upstream. I renamed the remotes so `origin`
+  is pyrite-wiki/pyrite and `fork` is my fork.
+- **Fork clone race.** `gh repo fork --clone` failed the first time because the fork was not ready
+  yet. Cloning again a moment later worked.
+- **Not touching my own config.** I ran the repro with `PYRITE_CONFIG_DIR` pointed at a throwaway
+  directory, and outside the checkout, whose repo-local `.pyrite/config.yaml` would otherwise
+  register the project's own KB.
 
 **Steps to Reproduce**
 
-1. [Step 1]
-2. [Step 2]
-3. [Observed result]
+1. Make a throwaway directory and config: `D=$(mktemp -d) && cd "$D" && export PYRITE_CONFIG_DIR="$D/config"`
+   (with the checkout's `.venv/bin` on `PATH`).
+2. Create a task KB: `pyrite kb create -n zk -t task -p "$D/zk"`.
+3. Create two tasks: `pyrite task create "Low priority task" -k zk --priority 3` and
+   `pyrite task create "Urgent task" -k zk --priority 9`. Both exit 0.
+4. Filter by out-of-range priorities: `pyrite task list -k zk --priority 99`, then `-1`, then `0`.
+5. Control: `pyrite task list -k zk --priority 3` (in range), and `pyrite task create "x" -k zk --priority 99`
+   (the same value on the sibling option).
+6. Observed result: step 4 prints `"count": 0, "tasks": []` and exits 0 for all three values. The in-range
+   filter finds its task (`"count": 1`), and `task create --priority 99` is refused with exit 2 and
+   `USAGE_ERROR`.
 
 **Reproduction Evidence**
 
-- **Commit showing reproduction:** [link to commit in your fork]
-- **Screenshots/logs:** [if applicable]
-- **My findings:** [what you discovered during reproduction; an
-  honest, evidenced cannot-reproduce that led you to re-pick or ask
-  the maintainer belongs here and costs you nothing]
+- **Commit showing reproduction:** pending. The next commit, on a `fix/` branch in my fork, will add the
+  `task list` cases to `tests/test_task_cli_priority_range.py` and show them failing before line 293 changes.
+- **Screenshots/logs:**
+
+  ```
+  $ pyrite task list -k zk --priority 99
+  {
+    "count": 0,
+    "tasks": [],
+    "outcome": "done"
+  }
+  exit 0
+
+  $ pyrite task list -k zk --priority 3
+  {
+    "count": 1,
+    "tasks": [
+      {
+        "id": "low-priority-task",
+        "title": "Low priority task",
+        "status": "open",
+        "assignee": "",
+        "priority": 3,
+        ...
+  exit 0
+
+  $ pyrite task create x -k zk --priority 99
+  Error: Invalid value for '--priority': 99 is not in the range 1<=x<=10.
+  {"outcome": "error", "error": "Invalid value for '--priority': 99 is not in the range 1<=x<=10.", "error_code": "USAGE_ERROR", "retryable": false, "suggestion": "Try 'pyrite task create --help' for help."}
+  exit 2
+  ```
+
+  `--priority -1` and `--priority 0` printed the same `"count": 0` body with exit 0.
+- **My findings:** The bug is real on today's `dev` (`f66b3977`), which is newer than the `e27d5e48` the
+  issue was measured on. It is also in the v0.26.3 release: line 293 of `pyrite/cli/task_commands.py` is
+  identical on `origin/main` (`250332d4`), `typer.Option(None, "--priority", help="Filter by priority")`,
+  while `create` (line 186) and `update` (line 414) declare `min=1, max=10`. The out-of-range filter
+  doesn't fail; it silently returns nothing, which reads as "no tasks have that priority" rather than
+  "that is not a priority". repro-check accepted the claim and report together, with every required check
+  passing and the control run present.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: repro-check, my Unit 2 skill, now running on the wild `scope.md` and the voice guide in its new
+  home. I ran it in a fresh `claude -p` session over `claim_draft.md` and `repro-draft.md` with
+  read-only `gh` access, after the voice guard had already passed the claim.
+- What it produced: **accept**. env-recorded, steps-rerunnable, behavior-matches, honest-outcome,
+  claim-specific and ai-disclosure all passed, and the preferred control-run check passed too. It checked
+  my facts against the repo itself (line 293 on `main` and `dev`, `-k` as an alias of `--kb`, the
+  CONTRIBUTING line about the trailer). No voice-guide rule was broken.
+- Difficulties: it flagged three soft spots. I only described the `-1`/`0` outputs instead of pasting them.
+  The steps assume `pyrite` is on `PATH` after `cd "$D"`. And the issue's "maintainer may differ" point
+  about hand-written out-of-range priorities belongs in my plan or PR. Separately, a headless session
+  can't approve `gh` calls, so it needed `--allowedTools`.
+- What changed: I added the `PATH` note to the steps here. The other two go into the plan and the PR
+  description.
 
 ---
 
