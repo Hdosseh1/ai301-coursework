@@ -7,8 +7,8 @@ the repository is not read. **Keep every section header below under its exact na
 format criteria grade exactly that. Your course repo link is the whole submission: no tool
 files and no evidence uploads are part of Assignment 5.
 
-**Contribution Number:** [1]
-**Student:** [Student name]
+**Contribution Number:** [2]
+**Student:** Hayden Dosseh
 **GitHub Username:** Hdosseh1
 **Issue:** https://github.com/pyrite-wiki/pyrite/issues/1559
 **Pull Request:** [GitHub PR link, once opened]
@@ -144,19 +144,27 @@ need fixing, and I haven't rescanned with the new strategy yet.
 
 **Problem Description**
 
-[In your own words, what is broken or missing?]
+The `--priority` filter on `pyrite task list` has no range check, even though `task create` and
+`task update` only accept priorities from 1 to 10. A typo like `--priority 99` is treated as a
+real filter instead of being rejected.
 
 **Expected Behavior**
 
-[What should happen?]
+`task list --priority` should refuse any value outside 1-10 with exit code 2 and a `USAGE_ERROR`
+naming `--priority`, the same way `create` and `update` do. Values from 1 to 10 should filter as
+they do now.
 
 **Current Behavior**
 
-[What actually happens?]
+`task list --priority 99`, `0`, and `-1` all exit 0 and print `"count": 0, "tasks": []`. That
+reads as "no tasks have that priority" when the value isn't a valid priority at all.
 
 **Affected Components**
 
-[Which parts of the codebase are involved?]
+The `--priority` option on `task_list` in `pyrite/cli/task_commands.py` (line 293), which is
+missing the `min=1, max=10` that `create` and `update` declare. The tests in
+`tests/test_task_cli_priority_range.py` and the `NOT_YET` list in
+`tests/test_cli_numeric_options_declare_a_range.py`, which tracks this option as unbounded, also change.
 
 **Toolkit**
 
