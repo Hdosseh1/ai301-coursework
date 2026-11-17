@@ -279,29 +279,43 @@ Challenges:
 
 **Analysis**
 
-[Your analysis of the root cause: what is causing the issue, traced
-to the files and functions involved.]
+`task list --priority` is declared in `task_list` in pyrite/cli/task_commands.py (around line 293) with no min or max. Values like 0, -1, 11 and 100 reach the query, match nothing, and the command prints "count": 0 and exits 0. `task create` and `task update` already refuse these values with exit 2 and USAGE_ERROR, so only the list filter is inconsistent.
 
 **Proposed Solution**
 
-[High-level description of your fix approach, and what you are
-deliberately NOT changing.]
+Declare min=1, max=10 on the --priority option and update its help text to "(1-10)". Remove the ("pyrite task list", "priority") row from NOT_YET in tests/test_cli_numeric_options_declare_a_range.py and lower NOT_YET_PINNED_SIZE from 40 to 39 in the same commit, as that file requires. If another PR changes that line first and it conflicts, I'll merge `dev` into my branch, keep `dev`'s NOT_YET list, remove my row from it, and set NOT_YET_PINNED_SIZE to the list's new length. One side effect goes in the PR description: a priority outside 1-10 written by hand into a task file can no longer be filtered for, and `qa validate` is where such a file gets reported. I will not change other options, wiki stubs --limit (#1560), or how create and update validate.
 
 **Implementation Plan**
 
-1. [Modify file X to do Y]
-2. [Add or change Z]
-3. [Update tests]
+1. Add the range to the --priority option in task_list.
+2. Remove the NOT_YET row and lower NOT_YET_PINNED_SIZE to 39 in the same commit. If this conflicts with `dev`, keep `dev`'s list, remove my row, and set the size to the list's length.
+3. In tests/test_task_cli_priority_range.py, add tests that `task list --priority` rejects 0, 11, -1 and 100 with exit 2 and USAGE_ERROR, plus boundary controls for 1 and 10.
+4. Add a changelog.d fragment for #1559.
+5. Run the manifest checks: the two test files, ruff check, and ruff format --check.
+6. In the PR description, add one sentence saying a hand-written out-of-range priority can no longer be filtered for and `qa validate` reports it.
 
-[Record deviations here as they happen: what changed mid-build and
-why. A recorded deviation is honest work; silent drift is not.]
+Deviations: none recorded yet.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: plan-check, my Unit 3 skill, run in a fresh headless `claude -p` session in my pyrite checkout over
+  `plan.md` and `plan-comment.md`, with read-only `gh` and `git` commands allowed. Claude Code helped me
+  draft the comment and add two points to the plan before the run.
+- What it produced: **accept** on the first run. All seven required checks passed (cause-grounded,
+  fixes-reported-behavior, one-bounded-change, stranger-can-start, observable-test,
+  thread-direction-engaged, ai-policy-met), and both preferred checks (unknowns-named,
+  comment-carries-plan) passed too. It matched each point of the maintainer's direction to a sentence
+  in the comment.
+- Difficulties: before the run, the plan left out two things the maintainer asked for: the `qa validate`
+  note for the PR and how to handle a conflict on `NOT_YET_PINNED_SIZE`. During the run, the voice check
+  was skipped because the session couldn't read `voice-guide.md`, which is a link to a file outside the
+  skill folder. It also flagged that step 5 leaves out `scripts/test-affected --run`, that the comment
+  never names `pyrite/cli/task_commands.py`, and that `rubric.md` still mentions house rules my scope
+  file no longer has. None of those changed the verdict.
+- What changed: I added the `qa validate` note and the conflict handling to the plan before grading.
+  Still to update: copy the voice guide into the skill folder instead of linking it, add
+  `scripts/test-affected --run` to my pre-push checks, and remove the stale house-rules sentence from
+  the rubric.
 
 ---
 
