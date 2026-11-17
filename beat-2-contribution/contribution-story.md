@@ -9,9 +9,8 @@ files and no evidence uploads are part of Assignment 5.
 
 **Contribution Number:** [1]
 **Student:** [Student name]
-**GitHub Username:** [your GitHub username, exactly as it appears on your profile - no @, no
-profile URL. Your comments upstream are identified by this name.]
-**Issue:** [GitHub issue link]
+**GitHub Username:** Hdosseh1
+**Issue:** https://github.com/pyrite-wiki/pyrite/issues/1559
 **Pull Request:** [GitHub PR link, once opened]
 
 One repository, built across units 5 to 8, telling the whole story of your real
@@ -55,10 +54,16 @@ happened; these entries are the toolkit's own timeline.
 All four entries are graded. Keep every heading below, and fill each
 one in the week it belongs to.
 
-**Unit 5: [one line on the tool work]**
+**Unit 5: Built issue-scout's search strategy, ran the first wild scan, patched the rubric and ranking**
 
-[2-4 sentences: what you built (the scout, your strategy), what broke
-or fell short, what changed because of it.]
+I wrote a four-query search strategy (Python and C++ `good first issue`, Verilog, VHDL) and ran
+my first real scan on 2026-11-16: 396 issues narrowed to 5, and all 5 were accepted. The scan
+exposed several problems. The tie-break pushed issues filed minutes earlier to the top. One
+repo took 3 of the 5 slots. The rubric accepted cineforge-agent, a solo repo with 0 stars
+created that same day. My hardware queries never reached grading. I added a required
+repo-in-use check and a preferred small-codebase check to the rubric, changed the tie-break
+to oldest-first, and capped results at 2 per repo, then regraded #1559 and #1560 (both
+still accepted).
 
 **Unit 6: [one line on the tool work]**
 
@@ -80,24 +85,58 @@ drafted, what you did with the draft.]
 
 ## Why I Chose This Issue
 
-[1-2 paragraphs in your own words: how you searched, what your scan
-surfaced, what your scout's verdict said, why this issue fits your
-profile, and what you hope to learn. If your scout's verdict on it
-was reject and you chose it anyway, say so here and say why; choosing
-against your own tool silently is what loses points. Close with an
-honest read of the tool itself: where the scout fell short on a real
-wild search and what you changed or would change, or what convinced
-you it held up. **Record the link to your claim comment in this section too.**
-Not claimed yet? Write `claim pending` and today's date where the link goes,
-and add the link the moment your claim lands.]
+I didn't browse for an issue by hand. I used my issue-scout skill, which runs `gh search issues`
+with a strategy I wrote from my fit profile: `good first issue` in Python and C++, plus open
+Verilog and VHDL issues because I wanted something hardware-related. On 2026-11-16 the first scan
+pulled 396 unique issues. It dropped the assigned ones and the ones not updated in 60 days, which
+left 346, and graded the top 5 against my rubric. All 5 were accepted, and
+pyrite-wiki/pyrite#1559 came out on top. After patching my rubric I regraded it directly. It still
+passed all seven required checks and four of the five preferred ones. The one it missed was
+small-codebase, because pyrite is about 14 MB.
+
+The issue is a small, well-defined bug. `pyrite task list --priority` accepts any integer, while
+`task create` and `task update` already reject anything outside 1-10, so the filter on `list` was
+just missed. The issue names the exact line (`pyrite/cli/task_commands.py:293`) and the test file
+to extend, and that file already has a fixture for it. That fits what I said I wanted: Python,
+tests, and practice fixing bugs. It does go against "avoid giant codebases". I picked it anyway
+because the change is one option and one test file, and the project is very active: a release
+on 2026-11-16, maintainer replies within a day, and a CONTRIBUTING.md that welcomes AI-assisted
+work. I want to learn how a bigger project's workflow runs (branching from `dev`, changelog
+fragments, their ratchet test) and how Typer validates options. My honest read of the scout:
+its checks held up, but its ranking didn't. #1559 reached the top mostly because my tie-break
+favored the newest issues, and it had been filed minutes before the scan. None of my hardware
+queries ever reached grading. I changed the tie-break to oldest-first, capped results at 2 per
+repo, and added repo-in-use and small-codebase checks to the rubric. The hardware queries still
+need fixing, and I haven't rescanned with the new strategy yet.
+
+**Claim comment:** claim pending (2026-11-16)
 
 **Toolkit**
 
-- Tool: issue-scout (your scout: your search strategy, your rubric),
-  and how you used it
-- What it produced: [the scan and its verdict on this issue, described]
-- Difficulties: [where it fell short, or "none met" if none did]
-- What changed: [what you patched or would update, or "nothing"]
+- Tool: issue-scout, a Claude Code skill that drives the `gh` CLI. I wrote
+  its search strategy (4 queries: Python and C++ `good first issue`,
+  Verilog, VHDL; ranking filters; top 5) and its rubric (7 required checks,
+  5 preferred). I ran one full scan, then patched the rubric and regraded
+  the two pyrite issues directly.
+- What it produced: Scan 1 (2026-11-16) narrowed 396 unique results to 5
+  graded candidates and accepted all 5, with pyrite-wiki/pyrite#1559 ranked
+  first. On the direct regrade under the patched rubric, #1559 was still
+  accepted: every required check passes and 4 of 5 preferred checks pass.
+  It fails only small-codebase (repo is 14,499 KB, over the 10 MB line).
+- Difficulties: (1) The recency tie-break decided the whole top 5, which
+  were issues filed minutes before the scan. (2) There was no per-repo cap,
+  so 3 of 5 slots went to one repo. (3) The Verilog/VHDL queries left 166
+  survivors but almost none had a newcomer label, so none reached grading.
+  (4) The rubric accepted a less-than-1-day-old, 0-star solo repo
+  (cineforge-agent). (5) "Avoid giant codebases" was invisible to ranking,
+  so 14 MB pyrite ranked first.
+- What changed: On 2026-11-16 I added a required repo-in-use check (repo
+  age, stars, or an outside contributor's merged PR) and a preferred
+  small-codebase check (under 10 MB) to the rubric. In the strategy I
+  changed the tie-break to oldest createdAt first and capped results at 2
+  per repo. Still to update: the hardware queries need a label filter or
+  their own top-N slice. A rescan under the patched strategy has not been
+  run yet.
 
 ---
 

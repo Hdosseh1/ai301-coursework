@@ -116,3 +116,23 @@ its label rather than deleting the line.
 
 issue-scout: [where this tool still stops, in plain words, or the word none]
 [tool name]: [where this tool still stops, in plain words, or the word none]
+
+<!-- EVIDENCE NOTES for the issue-scout entry, gathered 2026-11-16 (facts only; write the
+entry yourself and delete this comment before submitting)
+
+- Judgment hole: search-strategy.md (4 gh queries: Python/C++ good-first-issue, Verilog,
+  VHDL; ranking filters; top 5) and rubric.md (7 required + 5 preferred checks).
+- Before: Scan 1, 2026-11-16: 396 unique -> 352 unassigned -> 346 updated in 60 days ->
+  top 5 graded, 5/5 accepted. 3 of the 5 were Duttaak555/cineforge-agent (created
+  2026-11-16, 0 stars, owner-only commits).
+- Change 1, 2026-11-16 (rubric): added required repo-in-use ("created >30 days before
+  capture, OR >=5 stars, OR a merged PR from someone other than the owner") and
+  preferred small-codebase (<10 MB).
+- Change 2 (strategy): tie-break from most-recently-updated to oldest createdAt;
+  "keep at most 2 results per repository".
+- After: direct regrade of pyrite#1559/#1560 -> both accept, 7/7 required, 4/5 preferred
+  (small-codebase fails: 14,499 KB). cineforge has not been regraded under repo-in-use.
+- Open limits: Verilog/VHDL queries never reached grading (166 survivors, ~1 labeled);
+  patched strategy not yet rescanned; #1559 surfaced via the old newest-first tie-break.
+- Records: ~/.claude/skills/issue-scout/scan-notes.md, scan-output.md (Scan 1, Scan 2).
+-->
