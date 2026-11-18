@@ -173,10 +173,19 @@ missing the `min=1, max=10` that `create` and `update` declare. The tests in
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: Claude Code, in a session on 2026-11-16. I had it read this story, my repo-memory file
+  for pyrite (`CLAUDE.local.md`), and the `git diff` of my pyrite checkout, and draft the four
+  answers above in one or two plain sentences each, leaving every other section alone.
+- What it produced: the four answers, with the `--priority` option at
+  `pyrite/cli/task_commands.py:293`, the two test files, and the `NOT_YET` list named as the
+  affected components. I committed them as `a9c819f`.
+- Difficulties: Affected Components came out at three sentences, not two. The answers were built
+  from my uncommitted diff, so the fix was already sitting in my working tree when I wrote them.
+  The changelog fragment wasn't in the diff yet, so it isn't listed. The commit also picked up two
+  header edits I had made before the session: my name, and Contribution Number changed to `[2]`.
+- What changed: I kept the three-sentence answer. Leaving out `pyrite/models/task.py`, which keeps
+  hand-written out-of-range priorities, was deliberate, because that file doesn't change; it shows
+  up instead as the `qa validate` side effect in my plan and PR.
 
 ---
 
