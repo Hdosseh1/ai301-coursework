@@ -432,8 +432,8 @@ description carries the proof.
   the changelog fragment.
 - Difficulties: the fix came before the plan, so the order the course asks for got reversed. I
   recommitted the fix once to reword its message. Claude Code started the first full-suite run
-  with plain `pytest -n auto` instead of the heavy-lock command in AGENTS.md, even though AGENTS.md
-  was already loaded in the session.
+  with plain `pytest -n auto` instead of the heavy-lock command in AGENTS.md. It hadn't read
+  AGENTS.md yet and ran the command without checking it.
 - What changed: the full suite was rerun with the heavy-lock command. Next time I'll write and
   check the plan before writing any code, and look up the repo's own test command before starting
   a long run.
