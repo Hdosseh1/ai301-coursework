@@ -71,10 +71,15 @@ still accepted).
 fell short, and what changed because of it. "Nothing broke" counts when
 it is true - say how you know.]
 
-**Unit 7: [one line on the tool work]**
+**Unit 7: Ran my ship-gate and pyrite manifest on the real branch, and pr-precheck made me fix the Testing line**
 
-[2-4 sentences: the ship-gate and your gate manifest. What it produced
-on your real branch, what fought you, what changed because of it.]
+My manifest lists three checks for pyrite, each with its source: the two affected test files,
+`ruff check pyrite/`, and `ruff format --check pyrite/`. The gate runs them and then my
+pr-precheck before `gh pr create` can go through. On 2026-11-17 all three checks passed on
+`fix/task-list-priority-range`, but pr-precheck rejected the PR because the template's
+`pytest tests/ extensions/ -n auto` box was unchecked with no result and no reason
+(repo-checks-run and template-asks-met failed). The gate stopped the PR, and I fixed the Testing
+line in my description before trying again.
 
 **Unit 8: [one line on the tool work]**
 
@@ -279,22 +284,37 @@ Challenges:
 
 **Analysis**
 
-`task list --priority` is declared in `task_list` in pyrite/cli/task_commands.py (around line 293) with no min or max. Values like 0, -1, 11 and 100 reach the query, match nothing, and the command prints "count": 0 and exits 0. `task create` and `task update` already refuse these values with exit 2 and USAGE_ERROR, so only the list filter is inconsistent.
+In `pyrite/cli/task_commands.py`, `task_list` declares `--priority` (around line 293) with no min
+or max. So 0, -1, 11 and 100 all reach the query, match nothing, and the command prints
+`"count": 0` and exits 0. `task create` and `task update` already refuse those values with exit 2
+and `USAGE_ERROR`, so the list filter is the only one that doesn't.
 
 **Proposed Solution**
 
-Declare min=1, max=10 on the --priority option and update its help text to "(1-10)". Remove the ("pyrite task list", "priority") row from NOT_YET in tests/test_cli_numeric_options_declare_a_range.py and lower NOT_YET_PINNED_SIZE from 40 to 39 in the same commit, as that file requires. If another PR changes that line first and it conflicts, I'll merge `dev` into my branch, keep `dev`'s NOT_YET list, remove my row from it, and set NOT_YET_PINNED_SIZE to the list's new length. One side effect goes in the PR description: a priority outside 1-10 written by hand into a task file can no longer be filtered for, and `qa validate` is where such a file gets reported. I will not change other options, wiki stubs --limit (#1560), or how create and update validate.
+I'll declare `min=1, max=10` on `--priority` and add "(1-10)" to its help text. In the same
+commit, as that file requires, I'll remove the `("pyrite task list", "priority")` row from
+`NOT_YET` in `tests/test_cli_numeric_options_declare_a_range.py` and lower `NOT_YET_PINNED_SIZE`
+from 40 to 39. If another PR changes that line first and it conflicts, I'll merge `dev` into my
+branch, keep `dev`'s `NOT_YET` list, remove my row from it, and set `NOT_YET_PINNED_SIZE` to the
+list's new length. One side effect goes in the PR description: a priority outside 1-10 written
+into a task file by hand can no longer be filtered for, and `qa validate` is where that file gets
+reported. I'm not changing any other option, `wiki stubs --limit` (#1560), or how `create` and
+`update` validate.
 
 **Implementation Plan**
 
-1. Add the range to the --priority option in task_list.
-2. Remove the NOT_YET row and lower NOT_YET_PINNED_SIZE to 39 in the same commit. If this conflicts with `dev`, keep `dev`'s list, remove my row, and set the size to the list's length.
-3. In tests/test_task_cli_priority_range.py, add tests that `task list --priority` rejects 0, 11, -1 and 100 with exit 2 and USAGE_ERROR, plus boundary controls for 1 and 10.
-4. Add a changelog.d fragment for #1559.
-5. Run the manifest checks: the two test files, ruff check, and ruff format --check.
-6. In the PR description, add one sentence saying a hand-written out-of-range priority can no longer be filtered for and `qa validate` reports it.
+1. Add the range to `--priority` in `task_list`.
+2. In the same commit, remove the `NOT_YET` row and lower `NOT_YET_PINNED_SIZE` to 39. If that
+   conflicts with `dev`, keep `dev`'s list, remove my row, and set the size to the list's length.
+3. In `tests/test_task_cli_priority_range.py`, add tests that `task list --priority` rejects 0, 11,
+   -1 and 100 with exit 2 and `USAGE_ERROR`, plus boundary controls for 1 and 10.
+4. Add a `changelog.d` fragment for #1559.
+5. Run the manifest checks: the two test files, `ruff check`, and `ruff format --check`.
+6. Add one sentence to the PR description saying a hand-written out-of-range priority can no
+   longer be filtered for and `qa validate` reports it.
 
-Deviations: none recorded yet.
+Deviations: none. The branch follows all six steps; the diff touches the four files the plan names
+(`task_commands.py`, the two test files, and the changelog fragment).
 
 **Toolkit**
 
@@ -321,10 +341,48 @@ Deviations: none recorded yet.
 
 ## Testing Strategy
 
-[What observable checks prove the fix: your reproduction steps re-run
-against the built change (before and after), and the repo's own test
-suite or checks with the outcome shown. "Tests pass" with nothing
-observable named is not a strategy.]
+**New tests, before and after the fix.** The tests are in their own commit (`399ae7cc`), ahead of
+the fix. I ran them with `task_commands.py` as it was in that commit, so without the fix, and the
+four new out-of-range cases failed while everything else passed:
+
+```
+FAILED tests/test_task_cli_priority_range.py::test_list_rejects_priority_filter_out_of_range[0]
+FAILED tests/test_task_cli_priority_range.py::test_list_rejects_priority_filter_out_of_range[11]
+FAILED tests/test_task_cli_priority_range.py::test_list_rejects_priority_filter_out_of_range[-1]
+FAILED tests/test_task_cli_priority_range.py::test_list_rejects_priority_filter_out_of_range[100]
+========================= 4 failed, 16 passed in 2.47s =========================
+```
+
+Each failure is `assert 0 == 2` on the exit code. With the fix (`fe9fb006`), both files pass:
+
+```
+$ .venv/bin/pytest tests/test_cli_numeric_options_declare_a_range.py tests/test_task_cli_priority_range.py -q
+============================== 58 passed in 2.51s ==============================
+```
+
+The 1 and 10 boundary cases are marked `@pytest.mark.control`, because filtering at a valid
+boundary already worked.
+
+**Lint and format.** `ruff check pyrite/` printed "All checks passed!" and `ruff format --check
+pyrite/` printed "223 files already formatted". Those are the manifest's commands. The PR
+template's wider version, over `pyrite/ tests/ extensions/`, is also clean (962 files).
+
+**Reproduction rerun.** I reran the steps from my repro on the branch, with a throwaway KB and
+tasks at priority 3 and 9. Before the fix, `--priority 99`, `-1` and `0` each printed
+`"count": 0, "tasks": []` and exited 0. Now each one is refused:
+
+```
+$ pyrite task list -k zk --priority 99
+Error: Invalid value for '--priority': 99 is not in the range 1<=x<=10.
+{"outcome": "error", "error": "Invalid value for '--priority': 99 is not in the range 1<=x<=10.", "error_code": "USAGE_ERROR", "retryable": false, "suggestion": "Try 'pyrite task list --help' for help."}
+exit 2
+```
+
+`-1` and `0` give the same error with their own value, also exit 2. The in-range control,
+`--priority 3`, still returns the priority-3 task (`"count": 1`) with exit 0.
+
+**Full suite.** `scripts/heavy_lock.py -- .venv/bin/pytest tests/ extensions/*/tests/ -n 4 -q`:
+still running, result not in yet.
 
 **Toolkit**
 
@@ -337,16 +395,25 @@ observable named is not a strategy.]
 
 ## Implementation Notes
 
-[A running log, added to as you work. Date each entry. What you
-built, decisions you made when you made them, wrong turns included.]
+**2026-11-16**
 
-**[Date]**
+I set up the checkout and reproduced the bug on `dev` (`f66b3977`). I drafted the fix during the
+repro: it was one line, the `min=1, max=10` that `create` and `update` already have. I wrote the
+plan afterward to match it, so the plan describes a change I had already tried rather than one I
+designed first. plan-check accepted it. Then I branched `fix/task-list-priority-range`, committed
+the tests first (`399ae7cc`) and the fix second, and recommitted the fix once to reword its
+message (`fe9fb006`). I pushed the branch to my fork.
 
-[Entry]
+**2026-11-17**
 
-**[Date]**
-
-[Entry]
+My first `gh pr create` was stopped by my ship-gate. The manifest checks passed, but pr-precheck
+rejected the description because the full-suite box was unchecked with no reason. The first
+full-suite run, which Claude Code started, used the wrong command: plain
+`pytest tests/ extensions/ -n auto`, without the machine-wide heavy lock that pyrite's AGENTS.md
+requires. I had it stopped and restarted as
+`scripts/heavy_lock.py -- .venv/bin/pytest tests/ extensions/*/tests/ -n 4 -q`. I also cut the
+sentence in my PR draft that pointed to my repro comment on the issue, because Step 12 says the PR
+description carries the proof.
 
 **Toolkit**
 
@@ -387,25 +454,44 @@ opened.]
 
 **Technical Skills Gained**
 
-[What you learned technically, named concretely.]
+- Typer passes `min`/`max` to Click, which rejects an out-of-range value while it parses the
+  arguments, before the command body runs. That's why the error comes back as exit 2 and
+  `USAGE_ERROR`, not from pyrite's own code.
+- How a ratchet test works: `NOT_YET` plus a pinned size means fixing one option forces the list
+  and the count to change in the same commit.
+- Showing a test is red without the fix by running it against the file as it was in an earlier
+  commit, plus pyrite's `control` marker for tests that are supposed to pass either way.
+- pyrite's process: branching from `dev`, `changelog.d` fragments, the commit-msg hook that
+  requires a `fix:` commit to touch `tests/`.
 
 **Challenges Overcome**
 
-[What was hard and how you solved it; point at the real events, the
-Toolkit blocks above are full of them.]
+- My system Python is 3.9 and pyrite needs 3.11+. Setting `UV_PYTHON=3.13` let the setup script
+  build the venv on 3.13.
+- I cloned my fork as `origin`, but pyrite's scripts read `origin/dev`. I renamed the remotes.
+- My own ship-gate blocked my first PR attempt. I fixed the Testing line instead of going around
+  the gate.
 
 **What I'd Do Differently Next Time**
 
-[Reflection on your process.]
+- Write the plan before touching code. This time the fix came first and the plan was written to
+  match it.
+- Read AGENTS.md's test command before starting any heavy run, and run the full suite before
+  drafting the PR, not when the gate asks for it.
+- Put the full suite, or `scripts/test-affected --run`, in my manifest so the gate checks it up
+  front.
 
 ---
 
 ## Resources Used
 
-[What actually helped, not a reading list. List things this story
-already shows you using: the doc you followed to set the environment
-up, the thread that explained the bug, the person who answered you.
-One real entry beats ten plausible ones.]
-
-- [Link to documentation that helped]
-- [Discussion, issue, or post that helped]
+- [pyrite-wiki/pyrite#1559](https://github.com/pyrite-wiki/pyrite/issues/1559): the issue named the
+  exact line, the test file and fixture to extend, and the ratchet change.
+- [CONTRIBUTING.md](https://github.com/pyrite-wiki/pyrite/blob/dev/CONTRIBUTING.md): "From a fork"
+  for the remote setup, and "Branches, hooks and pull requests" for branching, changelog fragments
+  and the AI policy.
+- [AGENTS.md](https://github.com/pyrite-wiki/pyrite/blob/dev/AGENTS.md): the heavy-lock command
+  for the full suite.
+- Claude Code, which I used to evaluate the issue, plan, write the tests and the fix, run checks,
+  and draft text. My own skills (issue-scout, repro-check, plan-check, pr-precheck) graded each
+  stage.
