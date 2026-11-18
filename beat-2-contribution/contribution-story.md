@@ -386,10 +386,18 @@ still running, result not in yet.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: pytest and ruff, run through Claude Code in my pyrite checkout, plus my ship-gate. The
+  gate's manifest reruns the two affected test files, `ruff check pyrite/` and
+  `ruff format --check pyrite/` before `gh pr create` can run.
+- What it produced: 4 failed and 16 passed without the fix, 58 passed with it, and ruff clean (223
+  files in `pyrite/`, 962 across all three directories). The repro rerun refused 99, -1 and 0
+  with exit 2. On 2026-11-17 the gate reported all three manifest checks "ok".
+- Difficulties: my manifest only covers the two affected test files, so I had no full-suite result
+  until pr-precheck flagged the missing one. The first full-suite run used the wrong command,
+  without the heavy lock, and hadn't finished after 10 minutes.
+- What changed: the full suite was restarted under `scripts/heavy_lock.py` with `-n 4`, and its
+  result is still pending. Still to update: add the full suite or `scripts/test-affected --run` to
+  my manifest so the gate checks it before the PR step.
 
 ---
 
