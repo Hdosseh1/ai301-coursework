@@ -11,7 +11,7 @@ files and no evidence uploads are part of Assignment 5.
 **Student:** Hayden Dosseh
 **GitHub Username:** Hdosseh1
 **Issue:** https://github.com/pyrite-wiki/pyrite/issues/1559
-**Pull Request:** [GitHub PR link, once opened]
+**Pull Request:** https://github.com/pyrite-wiki/pyrite/pull/1718
 
 One repository, built across units 5 to 8, telling the whole story of your real
 contribution. Fill it as you work, not at the end — the sections below ask for evidence that
@@ -472,20 +472,28 @@ the changed test file to my manifest.
 
 ## Pull Request
 
-**PR Link:** [GitHub PR URL when opened]
+**PR Link:** https://github.com/pyrite-wiki/pyrite/pull/1718 ("Declare a 1-10 range on task list
+--priority", a draft against `dev` from `Hdosseh1:fix/task-list-priority-range`, three commits:
+`399ae7cc`, `fe9fb006`, `ddbdcf3d`)
 
-**PR Description:** [what the PR says; much of the content above
-adapts into it]
+**PR Description:** The summary explains that `task list --priority` accepted any integer, so an
+out-of-range value printed `"count": 0` and exited 0, and that declaring `min=1, max=10` now
+refuses it with exit 2 and `USAGE_ERROR`. It names the ratchet change (`NOT_YET` row removed,
+`NOT_YET_PINNED_SIZE` 40 to 39), the changelog fragment, and `Fixes #1559`, and says one existing
+test changed: the `--priority 0` case in `tests/test_task_list_priority.py` now expects the error,
+in its own commit. The Testing section shows the new tests failing without the fix (4 failed, 16
+passed) and passing with it (58 passed, then 73 across the three affected files), ruff clean, the
+reproduction rerun refusing 99, -1 and 0, and the full-suite result: 27,110 passed, 3 failed, two of
+them mine and fixed by the test commit, one that fails the same way on clean `dev` because of my
+system Python 3.9. The full-suite box stays unchecked with that explanation. The reviewer notes
+cover the `qa validate` side effect, what I left alone (#1560, other options), and how I used
+Claude Code.
 
 **Maintainer Feedback:**
 
-- [Date]: [feedback received, or "none yet"; silence is a normal
-  state and costs you nothing]
-- [Date]: [how you addressed it]
+- 2026-11-17: none yet. The PR opened as a draft that evening and has no comments or reviews.
 
-**Status:** [Awaiting review / Iterating / Merged / Closed. The
-status is a fact you record, never a grade: the PR is graded as
-opened.]
+**Status:** Awaiting review. It's open as a draft, and I haven't marked it ready for review yet.
 
 **Toolkit**
 
@@ -499,9 +507,13 @@ opened.]
 - Difficulties: the only thing missing was the full-suite result, and the full suite takes a long
   time on my machine. Separately, my draft linked to the repro comment on the issue, which Step 12
   says the PR description should carry instead.
-- What changed: I cut the sentence pointing to the repro comment and reran the full suite under
-  the heavy lock to fill the Testing line. The gate hasn't run pr-precheck on the revised
-  description yet; the PR will open as a draft against `pyrite-wiki/pyrite` `dev` once it does.
+- What changed: I cut the sentence pointing to the repro comment, reran the full suite under the
+  heavy lock, fixed the test case it caught, and rewrote the Testing line with the result. On the
+  second try the gate's checks and pr-precheck passed, the voice-guard passed the description, and
+  the draft PR opened as #1718. Before that, pyrite's own pre-push hook had blocked my push: my new
+  test checked `"--priority"` in raw output instead of through `plain()`, which a repo guard test
+  forbids. I fixed the line and folded it into the unpushed test commit. My manifest only runs
+  named test files, so it missed that; adding `scripts/test-affected --run` would catch it.
 
 ---
 
