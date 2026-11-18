@@ -65,11 +65,17 @@ repo-in-use check and a preferred small-codebase check to the rubric, changed th
 to oldest-first, and capped results at 2 per repo, then regraded #1559 and #1560 (both
 still accepted).
 
-**Unit 6: [one line on the tool work]**
+**Unit 6: Ran the voice-guard as a Claude Code hook and wrote a repo-memory file for pyrite**
 
-[2-4 sentences: the voice-guard, the repo-memory file. What broke or
-fell short, and what changed because of it. "Nothing broke" counts when
-it is true - say how you know.]
+The voice-guard checks every outgoing `gh` post against one voice guide, which my three skills
+link to. Its log shows it passed my claim on #1559 and my `gh pr create`, and stopped one repro
+post because the body-file path was wrong. Where it fell short: it only checks voice, so on
+2026-11-16 it passed my repro report even though Step 12 says the report doesn't go on the issue,
+and plan-check couldn't read the linked guide in a headless session. My repo-memory file
+(`CLAUDE.local.md`) gave each session pyrite's conventions, the exact lines to change and the
+ratchet rule, but it didn't record AGENTS.md's heavy-lock command, and the first full-suite run used
+the wrong one; still to change: copy the guide into each skill folder and add the full-suite
+command to the memory file.
 
 **Unit 7: Ran my ship-gate and pyrite manifest on the real branch, and pr-precheck made me fix the Testing line**
 
