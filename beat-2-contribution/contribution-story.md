@@ -425,10 +425,18 @@ description carries the proof.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: Claude Code in my pyrite checkout, on `fix/task-list-priority-range`. I used it to write
+  the tests and the fix, make the commits, push to my fork, and run the checks and the PR command.
+- What it produced: two commits, tests first (`399ae7cc`) and then the fix (`fe9fb006`). Together
+  they touch four files (30 lines added, 5 removed): `task_commands.py`, the two test files, and
+  the changelog fragment.
+- Difficulties: the fix came before the plan, so the order the course asks for got reversed. I
+  recommitted the fix once to reword its message. Claude Code started the first full-suite run
+  with plain `pytest -n auto` instead of the heavy-lock command in AGENTS.md, even though AGENTS.md
+  was already loaded in the session.
+- What changed: the full suite was rerun with the heavy-lock command. Next time I'll write and
+  check the plan before writing any code, and look up the repo's own test command before starting
+  a long run.
 
 ---
 
