@@ -468,10 +468,19 @@ opened.]
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: pr-precheck, my Unit 4 skill, run by my ship-gate in live mode (one Sonnet call) when
+  `gh pr create` was about to run. It graded my branch and `pr_draft.md` against my plan and
+  #1559. Claude Code helped me draft the description and ran the command.
+- What it produced: on 2026-11-17, **reject**. The manifest checks passed, but two rubric checks
+  failed: repo-checks-run (the template's `pytest tests/ extensions/ -n auto` box was unchecked and
+  no full-suite or test-affected result was reported) and template-asks-met (that unchecked box
+  had no reason). The gate stopped the PR before anything was posted.
+- Difficulties: the only thing missing was the full-suite result, and the full suite takes a long
+  time on my machine. Separately, my draft linked to the repro comment on the issue, which Step 12
+  says the PR description should carry instead.
+- What changed: I cut the sentence pointing to the repro comment and reran the full suite under
+  the heavy lock to fill the Testing line. The gate hasn't run pr-precheck on the revised
+  description yet; the PR will open as a draft against `pyrite-wiki/pyrite` `dev` once it does.
 
 ---
 
