@@ -330,7 +330,7 @@ reported. I'm not changing any other option, `wiki stubs --limit` (#1560), or ho
 
 Deviations: one. The full suite showed that an existing case in `tests/test_task_list_priority.py`
 expected `task list --priority 0` to exit 0, and the plan didn't name that file. I changed the case
-to expect exit 2 and `USAGE_ERROR`, in its own commit (`a3981f91`). So the diff touches five files:
+to expect exit 2 and `USAGE_ERROR`, in its own commit (`ddbdcf3d`). So the diff touches five files:
 `task_commands.py`, the changelog fragment, the two test files the plan names, and
 `test_task_list_priority.py`.
 
@@ -402,7 +402,7 @@ exit 2
 **Full suite.** `scripts/heavy_lock.py -- .venv/bin/pytest tests/ extensions/*/tests/ -n 4 -q`
 on the fix commit: 27,110 passed, 310 skipped, 3 xfailed, 3 failed, in 40 minutes. Two failures
 were mine: the json and rich runs of a case in `tests/test_task_list_priority.py` that expected
-`--priority 0` to exit 0. After I changed that case (`a3981f91`), the file passes (15 passed),
+`--priority 0` to exit 0. After I changed that case (`ddbdcf3d`), the file passes (15 passed),
 and the three affected test files pass together (73 passed). The third failure,
 `test_session_hook_exports_the_url_through_the_env_file`, fails the same way on a clean checkout
 of `dev` (`f66b3977`): `scripts/known_cloud_failures.py` raises a `TypeError` under my Mac's
@@ -457,7 +457,7 @@ the changed test file to my manifest.
 - Tool: Claude Code in my pyrite checkout, on `fix/task-list-priority-range`. I used it to write
   the tests and the fix, make the commits, push to my fork, and run the checks and the PR command.
 - What it produced: three commits: the new tests first (`399ae7cc`), then the fix (`fe9fb006`),
-  then the change to an existing test case the fix broke (`a3981f91`). Together they touch five
+  then the change to an existing test case the fix broke (`ddbdcf3d`). Together they touch five
   files (44 lines added, 6 removed): `task_commands.py`, the changelog fragment, and three test
   files.
 - Difficulties: the fix came before the plan, so the order the course asks for got reversed. I
