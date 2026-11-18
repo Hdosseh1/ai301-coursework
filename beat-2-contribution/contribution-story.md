@@ -328,8 +328,11 @@ reported. I'm not changing any other option, `wiki stubs --limit` (#1560), or ho
 6. Add one sentence to the PR description saying a hand-written out-of-range priority can no
    longer be filtered for and `qa validate` reports it.
 
-Deviations: none. The branch follows all six steps; the diff touches the four files the plan names
-(`task_commands.py`, the two test files, and the changelog fragment).
+Deviations: one. The full suite showed that an existing case in `tests/test_task_list_priority.py`
+expected `task list --priority 0` to exit 0, and the plan didn't name that file. I changed the case
+to expect exit 2 and `USAGE_ERROR`, in its own commit (`a3981f91`). So the diff touches five files:
+`task_commands.py`, the changelog fragment, the two test files the plan names, and
+`test_task_list_priority.py`.
 
 **Toolkit**
 
@@ -396,8 +399,14 @@ exit 2
 `-1` and `0` give the same error with their own value, also exit 2. The in-range control,
 `--priority 3`, still returns the priority-3 task (`"count": 1`) with exit 0.
 
-**Full suite.** `scripts/heavy_lock.py -- .venv/bin/pytest tests/ extensions/*/tests/ -n 4 -q`:
-still running, result not in yet.
+**Full suite.** `scripts/heavy_lock.py -- .venv/bin/pytest tests/ extensions/*/tests/ -n 4 -q`
+on the fix commit: 27,110 passed, 310 skipped, 3 xfailed, 3 failed, in 40 minutes. Two failures
+were mine: the json and rich runs of a case in `tests/test_task_list_priority.py` that expected
+`--priority 0` to exit 0. After I changed that case (`a3981f91`), the file passes (15 passed),
+and the three affected test files pass together (73 passed). The third failure,
+`test_session_hook_exports_the_url_through_the_env_file`, fails the same way on a clean checkout
+of `dev` (`f66b3977`): `scripts/known_cloud_failures.py` raises a `TypeError` under my Mac's
+system Python 3.9.6 and exits 0 under 3.13. I haven't rerun the full suite since the test commit.
 
 **Toolkit**
 
@@ -410,9 +419,10 @@ still running, result not in yet.
 - Difficulties: my manifest only covers the two affected test files, so I had no full-suite result
   until pr-precheck flagged the missing one. The first full-suite run used the wrong command,
   without the heavy lock, and hadn't finished after 10 minutes.
-- What changed: the full suite was restarted under `scripts/heavy_lock.py` with `-n 4`, and its
-  result is still pending. Still to update: add the full suite or `scripts/test-affected --run` to
-  my manifest so the gate checks it before the PR step.
+- What changed: the full suite was restarted under `scripts/heavy_lock.py` with `-n 4`. It caught
+  two failures in `tests/test_task_list_priority.py` that the manifest's two files missed, so I
+  fixed that test case and added the file to the manifest's test row. Still to update: add the full
+  suite or `scripts/test-affected --run` to my manifest so the gate checks it before the PR step.
 
 ---
 
@@ -436,15 +446,20 @@ full-suite run, which Claude Code started, used the wrong command: plain
 requires. I had it stopped and restarted as
 `scripts/heavy_lock.py -- .venv/bin/pytest tests/ extensions/*/tests/ -n 4 -q`. I also cut the
 sentence in my PR draft that pointed to my repro comment on the issue, because Step 12 says the PR
-description carries the proof.
+description carries the proof. The full suite came back with 3 failures. Two were an existing case
+in `tests/test_task_list_priority.py` that expected `--priority 0` to exit 0, so I changed it to
+expect the error, in a separate `test:` commit. I ran the third on a clean checkout of `dev` and it
+failed the same way there, because of my system Python 3.9, so it isn't from my branch. I added
+the changed test file to my manifest.
 
 **Toolkit**
 
 - Tool: Claude Code in my pyrite checkout, on `fix/task-list-priority-range`. I used it to write
   the tests and the fix, make the commits, push to my fork, and run the checks and the PR command.
-- What it produced: two commits, tests first (`399ae7cc`) and then the fix (`fe9fb006`). Together
-  they touch four files (30 lines added, 5 removed): `task_commands.py`, the two test files, and
-  the changelog fragment.
+- What it produced: three commits: the new tests first (`399ae7cc`), then the fix (`fe9fb006`),
+  then the change to an existing test case the fix broke (`a3981f91`). Together they touch five
+  files (44 lines added, 6 removed): `task_commands.py`, the changelog fragment, and three test
+  files.
 - Difficulties: the fix came before the plan, so the order the course asks for got reversed. I
   recommitted the fix once to reword its message. Claude Code started the first full-suite run
   with plain `pytest -n auto` instead of the heavy-lock command in AGENTS.md. It hadn't read
