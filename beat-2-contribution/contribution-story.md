@@ -328,11 +328,14 @@ reported. I'm not changing any other option, `wiki stubs --limit` (#1560), or ho
 6. Add one sentence to the PR description saying a hand-written out-of-range priority can no
    longer be filtered for and `qa validate` reports it.
 
-Deviations: one. The full suite showed that an existing case in `tests/test_task_list_priority.py`
-expected `task list --priority 0` to exit 0, and the plan didn't name that file. I changed the case
-to expect exit 2 and `USAGE_ERROR`, in its own commit (`ddbdcf3d`). So the diff touches five files:
-`task_commands.py`, the changelog fragment, the two test files the plan names, and
-`test_task_list_priority.py`.
+Deviations: two. First, the full suite showed that an existing case in
+`tests/test_task_list_priority.py` expected `task list --priority 0` to exit 0, and the plan didn't
+name that file. I changed the case to expect exit 2 and `USAGE_ERROR`, in its own commit
+(`ddbdcf3d`). So the diff touches five files: `task_commands.py`, the changelog fragment, the two
+test files the plan names, and `test_task_list_priority.py`. Second, step 2's conflict handling
+didn't hold. While the PR was open, `dev` removed `NOT_YET_PINNED_SIZE` entirely (#1614), so instead
+of setting the size to the list's length, I followed the review: deleted my row from `dev`'s list
+and kept no pinned size at all.
 
 **Toolkit**
 
@@ -406,7 +409,15 @@ were mine: the json and rich runs of a case in `tests/test_task_list_priority.py
 and the three affected test files pass together (73 passed). The third failure,
 `test_session_hook_exports_the_url_through_the_env_file`, fails the same way on a clean checkout
 of `dev` (`f66b3977`): `scripts/known_cloud_failures.py` raises a `TypeError` under my Mac's
-system Python 3.9.6 and exits 0 under 3.13. I haven't rerun the full suite since the test commit.
+system Python 3.9.6 and exits 0 under 3.13. I haven't rerun the heavy-lock full suite since the
+test commit.
+
+**After merging `dev`.** The review asked for `scripts/test-affected --run` after the merge. On the
+merge commit (`e644126b`) it passed: 26,489 passed, 130 skipped, 20 xfailed, 0 failed, in 50
+minutes. `dev`'s new ratchet check, `scripts/check_ratchets_only_shrink.py --range origin/dev HEAD`,
+passed, and ruff stayed clean (1032 files). When I pushed, the pre-push hook ran nearly the whole
+suite (`-m "not slow and not e2e and not experimental"`) and passed. With `.venv/bin` first on
+`PATH`, that included the cloud-hook test that fails under my system Python 3.9.
 
 **Toolkit**
 
@@ -452,18 +463,48 @@ expect the error, in a separate `test:` commit. I ran the third on a clean check
 failed the same way there, because of my system Python 3.9, so it isn't from my branch. I added
 the changed test file to my manifest.
 
+**2026-11-19**
+
+I installed the Unit 8 PR monitor and ran `monitor.py --state` on #1718. It showed review feedback
+in and the branch conflicting with `dev`. The maintainer's automated review (posted 2026-11-17)
+said the fix and tests were right, and the one blocking item was a conflict in the ratchet test:
+merge `dev` (no rebase), keep my deleted row, and drop `NOT_YET_PINNED_SIZE`, which `dev` had
+removed in #1614. It also asked for a `test-affected` result after the merge. A follow-up comment
+on 2026-11-19 said that after the merge the PR is ready to land. By the time I merged, `dev` had
+moved again and `task_commands.py` conflicted too, which the review didn't cover: `dev` had added
+`--dispatchable`, `--parked/--unparked` and `--fields` right after `--priority`. I resolved both
+files from `dev`'s version, putting back only my `--priority` line and deleting only my row, and
+checked that the net change against `dev` was exactly that. I committed the merge (`e644126b`) and
+started `test-affected`.
+
+**2026-11-21**
+
+`test-affected` passed on the merge after 50 minutes. That's too long for the gate's 1,500 s check
+limit, so I added it to my manifest's Excluded table with a dated reason instead of making it
+must-pass. The first push was stopped partway: because the push brought in 109 `dev` commits, the
+pre-push hook ran nearly the whole suite, including the cloud-hook test that fails under my system
+Python 3.9. I reran the push with `.venv/bin` first on `PATH`, so the hook ran on 3.13. It passed,
+and the merge went up as `ddbdcf3d..e644126b` with no force-push. I updated the PR description
+with `gh pr edit`: the merge and how I resolved it, the ratchet check, and the `test-affected`
+result. GitHub now shows the PR as mergeable. I haven't replied on the PR or marked it ready for
+review yet.
+
 **Toolkit**
 
 - Tool: Claude Code in my pyrite checkout, on `fix/task-list-priority-range`. I used it to write
   the tests and the fix, make the commits, push to my fork, and run the checks and the PR command.
 - What it produced: three commits: the new tests first (`399ae7cc`), then the fix (`fe9fb006`),
-  then the change to an existing test case the fix broke (`ddbdcf3d`). Together they touch five
-  files (44 lines added, 6 removed): `task_commands.py`, the changelog fragment, and three test
-  files.
+  then the change to an existing test case the fix broke (`ddbdcf3d`). After the review, a merge of
+  `dev` (`e644126b`). Against `dev`, the branch touches five files (43 lines added, 5 removed):
+  `task_commands.py`, the changelog fragment, and three test files.
 - Difficulties: the fix came before the plan, so the order the course asks for got reversed. I
   recommitted the fix once to reword its message. Claude Code started the first full-suite run
   with plain `pytest -n auto` instead of the heavy-lock command in AGENTS.md. It hadn't read
-  AGENTS.md yet and ran the command without checking it.
+  AGENTS.md yet and ran the command without checking it. The review was checked against an older
+  `dev` (`309f934f`), and by my merge `dev` was at `70bb4fd1`, so `task_commands.py` conflicted with
+  no instructions for it. And my Mac's system Python 3.9 would likely have failed a 40-minute
+  pre-push run, so I stopped the first push after about 11 minutes and reran it with the venv on
+  `PATH`.
 - What changed: the full suite was rerun with the heavy-lock command. Next time I'll write and
   check the plan before writing any code, and look up the repo's own test command before starting
   a long run.
@@ -473,15 +514,17 @@ the changed test file to my manifest.
 ## Pull Request
 
 **PR Link:** https://github.com/pyrite-wiki/pyrite/pull/1718 ("Declare a 1-10 range on task list
---priority", a draft against `dev` from `Hdosseh1:fix/task-list-priority-range`, three commits:
-`399ae7cc`, `fe9fb006`, `ddbdcf3d`)
+--priority", a draft against `dev` from `Hdosseh1:fix/task-list-priority-range`: `399ae7cc`,
+`fe9fb006`, `ddbdcf3d`, and the merge of `dev`, `e644126b`)
 
 **PR Description:** The summary explains that `task list --priority` accepted any integer, so an
 out-of-range value printed `"count": 0` and exited 0, and that declaring `min=1, max=10` now
-refuses it with exit 2 and `USAGE_ERROR`. It names the ratchet change (`NOT_YET` row removed,
-`NOT_YET_PINNED_SIZE` 40 to 39), the changelog fragment, and `Fixes #1559`, and says one existing
-test changed: the `--priority 0` case in `tests/test_task_list_priority.py` now expects the error,
-in its own commit. The Testing section shows the new tests failing without the fix (4 failed, 16
+refuses it with exit 2 and `USAGE_ERROR`. It names the ratchet change (the `NOT_YET` row
+removed), the changelog fragment, and `Fixes #1559`, and says one existing test changed: the
+`--priority 0` case in `tests/test_task_list_priority.py` now expects the error, in its own
+commit. Since 2026-11-21 it also says I merged `dev` and resolved the conflict as the review
+describes, that `dev`'s ratchet check passes, and that `test-affected` passed after the merge
+(26,489 passed, 0 failed). The Testing section shows the new tests failing without the fix (4 failed, 16
 passed) and passing with it (58 passed, then 73 across the three affected files), ruff clean, the
 reproduction rerun refusing 99, -1 and 0, and the full-suite result: 27,110 passed, 3 failed, two of
 them mine and fixed by the test commit, one that fails the same way on clean `dev` because of my
@@ -491,9 +534,20 @@ Claude Code.
 
 **Maintainer Feedback:**
 
-- 2026-11-17: none yet. The PR opened as a draft that evening and has no comments or reviews.
+- 2026-11-17: an automated review from the maintainer's account (markramm), about 15 minutes
+  after the PR opened. It found the fix and tests correct and the PR inside the "range-tightening
+  CLI fix" class. Blocking: a merge conflict in `tests/test_cli_numeric_options_declare_a_range.py`,
+  with exact steps (merge `dev`, keep my deleted row, drop `NOT_YET_PINNED_SIZE`). Non-blocking:
+  run `scripts/test-affected --run` after the merge and put the result in the description.
+- 2026-11-19: a follow-up comment: merge `dev`, resolve the conflict, address the blocking item,
+  and then it is ready to land.
+- 2026-11-21: how I addressed it. I merged `dev` with no force-push and resolved the ratchet file
+  as the review says, plus a `task_commands.py` conflict the review didn't cover. I pushed the merge
+  and put the ratchet check and `test-affected` results in the description. I haven't replied on
+  the PR yet.
 
-**Status:** Awaiting review. It's open as a draft, and I haven't marked it ready for review yet.
+**Status:** Iterating. The blocking item is fixed and pushed, and GitHub shows the PR as mergeable.
+It's still a draft, and I haven't replied to the review or marked it ready for review yet.
 
 **Toolkit**
 
