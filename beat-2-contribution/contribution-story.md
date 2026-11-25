@@ -486,8 +486,9 @@ pre-push hook ran nearly the whole suite, including the cloud-hook test that fai
 Python 3.9. I reran the push with `.venv/bin` first on `PATH`, so the hook ran on 3.13. It passed,
 and the merge went up as `ddbdcf3d..e644126b` with no force-push. I updated the PR description
 with `gh pr edit`: the merge and how I resolved it, the ratchet check, and the `test-affected`
-result. GitHub now shows the PR as mergeable. I haven't replied on the PR or marked it ready for
-review yet.
+result. GitHub then showed the PR as mergeable. Before I replied or marked it ready for review, it
+came out of draft and markramm merged it at 09:12 UTC that day (merge commit `ccd366ca` on
+`dev`), and #1559 closed with it.
 
 **Toolkit**
 
@@ -514,8 +515,8 @@ review yet.
 ## Pull Request
 
 **PR Link:** https://github.com/pyrite-wiki/pyrite/pull/1718 ("Declare a 1-10 range on task list
---priority", a draft against `dev` from `Hdosseh1:fix/task-list-priority-range`: `399ae7cc`,
-`fe9fb006`, `ddbdcf3d`, and the merge of `dev`, `e644126b`)
+--priority", against `dev` from `Hdosseh1:fix/task-list-priority-range`: `399ae7cc`, `fe9fb006`,
+`ddbdcf3d`, and the merge of `dev`, `e644126b`; opened as a draft, merged 2026-11-21 as `ccd366ca`)
 
 **PR Description:** The summary explains that `task list --priority` accepted any integer, so an
 out-of-range value printed `"count": 0` and exited 0, and that declaring `min=1, max=10` now
@@ -543,11 +544,11 @@ Claude Code.
   and then it is ready to land.
 - 2026-11-21: how I addressed it. I merged `dev` with no force-push and resolved the ratchet file
   as the review says, plus a `task_commands.py` conflict the review didn't cover. I pushed the merge
-  and put the ratchet check and `test-affected` results in the description. I haven't replied on
-  the PR yet.
+  and put the ratchet check and `test-affected` results in the description.
+- 2026-11-21: markramm merged the PR (merge commit `ccd366ca` on `dev`), and #1559 closed with
+  it. I haven't posted a reply on the thread.
 
-**Status:** Iterating. The blocking item is fixed and pushed, and GitHub shows the PR as mergeable.
-It's still a draft, and I haven't replied to the review or marked it ready for review yet.
+**Status:** Merged on 2026-11-21 by markramm, into `dev` as `ccd366ca`. It closed #1559.
 
 **Toolkit**
 
