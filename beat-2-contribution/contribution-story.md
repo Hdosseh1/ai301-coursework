@@ -94,8 +94,9 @@ with `dev`, which is how I found the review and the conflict I then fixed. Its f
 draft until I wrote my playbook: response rules, a 4-day nudge threshold past CONTRIBUTING's 72
 hours, one nudge, and when I'd close my own PR. By the time it ran on 2026-11-24 the PR was already
 merged, so it drafted a thank-you to markramm for both reviews (pointing me to a delta review I'd
-missed), and none of my nudge or walk-away rules got tested. I haven't posted the draft yet, and
-its note about closing #1559 has to go, since the issue closed with the merge.
+missed), and none of my nudge or walk-away rules got tested. I rewrote the draft in my own words as
+`my-reply.md`, dropping its note about closing #1559 since the issue had closed with the merge, and
+posted it on 2026-11-25 after my voice-guard passed it.
 
 ---
 
@@ -491,9 +492,9 @@ pre-push hook ran nearly the whole suite, including the cloud-hook test that fai
 Python 3.9. I reran the push with `.venv/bin` first on `PATH`, so the hook ran on 3.13. It passed,
 and the merge went up as `ddbdcf3d..e644126b` with no force-push. I updated the PR description
 with `gh pr edit`: the merge and how I resolved it, the ratchet check, and the `test-affected`
-result. GitHub then showed the PR as mergeable. Before I replied or marked it ready for review, it
-came out of draft and markramm merged it at 09:12 UTC that day (merge commit `ccd366ca` on
-`dev`), and #1559 closed with it.
+result. GitHub then showed the PR as mergeable. Before I replied or marked it ready for review,
+markramm marked it ready (08:54 UTC), labeled it `state: queued`, and merged it at 09:12 UTC that
+day (merge commit `ccd366ca` on `dev`), and #1559 closed with it.
 
 **Toolkit**
 
@@ -555,7 +556,11 @@ Claude Code.
   Non-blocking: a lone `#` separator is left before `NOT_YET`'s closing `}`, harmless unless I push
   again. Recommendation: merge.
 - 2026-11-21: markramm merged the PR (merge commit `ccd366ca` on `dev`), and #1559 closed with
-  it. I haven't posted a reply on the thread.
+  it.
+- 2026-11-25: I posted a thank-you on the thread
+  (https://github.com/pyrite-wiki/pyrite/pull/1718#issuecomment-7166946125), written in my own words
+  from the PR monitor's draft. It thanks markramm for the merge, the review's conflict steps, the
+  heads-up about the pin on #1559, and queuing the PR. My voice-guard passed it.
 
 **Status:** Merged on 2026-11-21 by markramm, into `dev` as `ccd366ca`. It closed #1559.
 
