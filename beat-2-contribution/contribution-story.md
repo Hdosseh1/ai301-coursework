@@ -87,10 +87,17 @@ pr-precheck before `gh pr create` can go through. On 2026-11-17 all three checks
 (repo-checks-run and template-asks-met failed). The gate stopped the PR, and I fixed the Testing
 line in my description before trying again.
 
-**Unit 8: [one line on the tool work]**
+**Unit 8: Wrote my PR playbook and ran the PR monitor on #1718 after it merged**
 
-[2-4 sentences: the PR-monitor and your playbook. What it read, what it
-drafted, what you did with the draft.]
+The monitor reads my PR through read-only `gh` calls. On 2026-11-19 its `--state` showed review
+feedback in and the branch conflicting with `dev`, which is how I found the review and the conflict
+I then fixed. The full run refused to draft until I wrote my playbook (response rules, a 4-day
+nudge threshold past CONTRIBUTING's 72 hours, one nudge, and when I'd close my own PR). By the time
+it ran on 2026-11-24 the PR was already merged, so it drafted a merged follow-up: a thank-you to
+markramm for both reviews, a conditional note about closing #1559, and the `qa validate` side
+effect, and none of my nudge or walk-away rules got tested. The draft also pointed me to a delta
+review from 2026-11-21 that I'd missed. #1559 had already closed, so the issue paragraph doesn't
+apply, and I haven't rewritten the draft into `my-reply.md` or posted it yet.
 
 ---
 
@@ -545,6 +552,10 @@ Claude Code.
 - 2026-11-21: how I addressed it. I merged `dev` with no force-push and resolved the ratchet file
   as the review says, plus a `task_commands.py` conflict the review didn't cover. I pushed the merge
   and put the ratchet check and `test-affected` results in the description.
+- 2026-11-21: an automated delta review of `e644126b` from the same account: the blocking item
+  was resolved as asked, and the ratchet file's only change was my deleted row and its comment.
+  Non-blocking: a lone `#` separator is left before `NOT_YET`'s closing `}`, harmless unless I push
+  again. Recommendation: merge.
 - 2026-11-21: markramm merged the PR (merge commit `ccd366ca` on `dev`), and #1559 closed with
   it. I haven't posted a reply on the thread.
 
